@@ -11,12 +11,10 @@ namespace Flownative\Neos\MultisiteHelper\Command;
  * source code.
  */
 
+use Flownative\Neos\MultisiteHelper\Service\MultisiteSetupService;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Cli\CommandController;
-use Neos\Media\Domain\Model\AssetCollection;
-use Neos\Media\Domain\Repository\AssetCollectionRepository;
 use Neos\Neos\Domain\Model\Site;
-use Neos\Neos\Domain\Repository\SiteRepository;
 
 /**
  * Command controller for site setup
@@ -25,15 +23,9 @@ class MultisiteCommandController extends CommandController
 {
     /**
      * @Flow\Inject
-     * @var AssetCollectionRepository
+     * @var MultisiteSetupService
      */
-    protected $assetCollectionRepository;
-
-    /**
-     * @Flow\Inject
-     * @var SiteRepository
-     */
-    protected $siteRepository;
+    protected $multisiteSetupService;
 
     /**
      * Set up multi-site requirements, e.g. the needed asset collection.
@@ -45,19 +37,7 @@ class MultisiteCommandController extends CommandController
      */
     public function setupCommand($siteNodeName)
     {
-        $assetCollectionTitle = ucfirst($siteNodeName);
-        $assetCollection = $this->assetCollectionRepository->findOneByTitle($assetCollectionTitle);
-
-        if ($assetCollection === null) {
-            $assetCollection = new AssetCollection($assetCollectionTitle);
-            $this->assetCollectionRepository->add($assetCollection);
-        }
-
-        /** @var Site $site */
-        $site = $this->siteRepository->findOneByNodeName($siteNodeName);
-        $site->setAssetCollection($assetCollection);
-        $this->siteRepository->update($site);
-
+        $this->multisiteSetupService->setup($siteNodeName);
         $this->outputLine('Site has been set up.');
     }
 }
